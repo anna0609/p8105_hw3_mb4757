@@ -25,6 +25,9 @@ scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
+
+
+
 ### Problem 1
 
 ```{r}
@@ -33,7 +36,7 @@ data("instacart")
 
 This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns.
 
-Observations are the level of items in orders by user. There are user/ order variables -- user ID, order ID, order day, and order hour. There are also item variables -- name, aisle, department, and some nueric codes.
+Observations are the level of items in orders by user. There are user/ order variables -- user ID, order ID, order day, and order hour. There are also item variables -- name, aisle, department, and some numeric codes.
 
 How many aisles, and which are most items from?
 ```{r}
@@ -86,11 +89,16 @@ instacart %>%
 ```{r part1}
 accel_df =
 read_csv("./data/accel_data.csv") %>% 
+  janitor::clean_names() %>% 
 pivot_longer(
-  activity.1 : activity.1440,
-    names_to = "activity",
-    values_to = "minutes"
+  activity_1 : activity_1440,
+    names_to = "minute",
+    values_to = "activity_count"
 ) %>% 
+  separate(minute, 
+           into = c("char", "minute"),
+           convert = TRUE
+           ) %>% 
 mutate(
   weekday=case_when(
 day %in% c("Monday","Tuesday","Wednesday","Thursday","Friday") ~ "weekday",
@@ -98,8 +106,10 @@ day %in% c("Saturday","Sunday") ~ "weekend"
 ),
 day = factor(day),
 day = forcats::fct_relevel(day, c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")),
-weekday = as.factor(weekday) 
-)
+weekday = factor(weekday) 
+) %>% 
+  select (-c(char))
+
 
 head(accel_df)
 count(accel_df)
@@ -111,24 +121,80 @@ There are 6 variables in the cleaned dataset: `r names(accel_df)`. This dataset 
 ```{r part2}
 accel_df %>% 
 group_by(week, day, weekday) %>% 
-  summarize(total_activity = sum(minutes)) %>% 
-    knitr::kable(digits = 1)
+  summarize(total_activity = sum(activity_count)) %>% 
+    knitr::kable(digits = 2)
 ```
 
-For week 1, the 63 year-old male has the least activity on Monday, and  has the most activity on Sunday.
-
-For week 2, the 63 year-old male has the least activity on Monday, and  has the most activity on Saturday.
-
-For week 3, the 63 year-old male has the least activity on Thursday, and  has the most activity on Monday.
-
-For week 4, the 63 year-old male has the least activity on Saturday, and  has the most activity on Wednesday.
-
-For week 5, the 63 year-old male has the least activity on Saturday, and  has the most activity on Friday.
+Tuesday and Wednesday's activity is more stable than other days.
 
 ```{r part 3}
-
+accel_df %>% 
+ggplot(aes(x=minute, y=activity_count,color = day)) +
+  geom_line(alpha = 0.5) +
+  geom_smooth(se = FALSE)
 ```
 
+This 63 year-old male's Friday night and Sunday morning' activity's activity accounts are more than other days.
+
+
+
 ### Problem 3
+```{r}
+data("ny_noaa") 
+```
+
+This data set contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. There are 7 variables: `r names(ny_noaa)`. There are a lot of missing values in tmax and tmin. variable prcp has `r sum(is.na(pull(ny_noaa, prcp)))` missing values, variable tmin has `r sum(is.na(pull(ny_noaa, tmin)))`missing values and variable tmax has `r sum(is.na(pull(ny_noaa, tmax)))` missing values.
+
+```{r}
+ny_noaa = ny_noaa %>% 
+separate(date, into = c("year", "month", "day"), convert = TRUE) %>% 
+  mutate(
+    tmax = as.numeric(tmax),
+    tmin = as.numeric(tmin),
+    prcp = prcp / 10,
+    tmax = tmax / 10,
+    tmin = tmin / 10
+  ) 
+```
+
+covert the tmax and tmin from character to numeric because these two variables are temperature. Covert prcp's unit to mm and tmax and tmin's unit to degree C.
+
+```{r}
+snow_count = count(ny_noaa, snow) %>% 
+  mutate(
+    snowfall_rank = min_rank(desc(n))
+    )%>% 
+arrange(snowfall_rank, by_group = FALSE)
+```
+For snowfall, the most commonly observed values is 0 mm, the second commonly observed values is NA and the third commonly observed values is 25 mm. Because there are many missing values. Also, most of the time New York state doesn't snow from January 1, 1981 through December 31, 2010.
+
+```{r}
+ny_noaa %>% 
+  group_by(id, year, month) %>% 
+  summarise(avg_tmax = mean(tmax, na.rm = TRUE)) %>% 
+  filter(month %in% c(1,7)) %>% 
+ggplot(aes(x = year, y = avg_tmax, group = id)) +
+geom_point(alpha = 0.5) + 
+geom_path(alpha = 0.5) +
+facet_grid(~ month) + 
+labs(title = " average max temperature in January and July in each station across years", x = "year", y = "average max temperature (C)") +
+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+January 2010 is warmer than January in 1980, July 1980 and July 2010 are almost the same. Therefore we cannot see the global warming. There are outliers.
+
+```{r}
+ny_noaa %>% 
+  ggplot(aes(x = tmax, y = tmin)) +
+geom_hex()
+```
+
+
+```{r}
+ny_noaa %>% 
+filter(snow>0 & snow<100) %>% 
+  ggplot(aes(x = year, y = snow)) +
+geom_boxplot()
+```
 
 

@@ -173,9 +173,9 @@ ny_noaa %>%
   summarise(avg_tmax = mean(tmax, na.rm = TRUE)) %>% 
   filter(month %in% c(1,7)) %>% 
   drop_na() %>% 
-ggplot(aes(x = year, y = avg_tmax, group = id)) +
+ggplot(aes(x = year, y = avg_tmax)) +
 geom_point() + 
-geom_path(alpha = 0.1, aes(color = id)) +
+geom_path(alpha = 0.1) +
   geom_smooth(se = TRUE) +
 facet_grid(~ month) + 
   theme(legend.position = "none") +
@@ -183,7 +183,7 @@ labs(title = " average max temperature in January and July in each station acros
 theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
-The average max temperature in July is higher than January. In January, we can see that the average max temperature in each station across the years is oscillating. In July, the average max temperature in each station across the years changes more stable than January. Therefore, we cannot conclude that the temperature is warming across years or global warming. There are many outliers in the graph such as the points around January 1982, and July 1988.
+The average max temperature in July is higher than January. In January, we can see that the average max temperature in each station across the years is oscillating. In July, the average max temperature in each station across the years is more stable than January. Therefore, we cannot conclude that the temperature is warming across years or global warming. There are many outliers in the graph such as the points around January 1982, and July 1988.
 
 ```{r p3_part3}
 tmax_tmin_plot =

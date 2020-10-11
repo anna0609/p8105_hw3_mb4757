@@ -177,8 +177,7 @@ ggplot(aes(x = year, y = avg_tmax)) +
 geom_point() + 
 geom_path(alpha = 0.1) +
   geom_smooth(se = TRUE) +
-facet_grid(~ month) + 
-  theme(legend.position = "none") +
+facet_grid(.~ month) + 
 labs(title = " average max temperature in January and July in each station across years", x = "year", y = "average max temperature (C)") +
 theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```

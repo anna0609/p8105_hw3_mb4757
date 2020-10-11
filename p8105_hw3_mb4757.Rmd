@@ -158,7 +158,7 @@ print(ny_noaa)
 snow_count = count(ny_noaa, snow) %>% 
   mutate(
     snowfall_rank = min_rank(desc(n))
-    )%>% 
+    ) %>% 
 arrange(snowfall_rank, by_group = FALSE)
 print(snow_count)
 ```
@@ -173,13 +173,15 @@ ny_noaa %>%
   summarise(avg_tmax = mean(tmax, na.rm = TRUE)) %>% 
   filter(month %in% c(1,7)) %>% 
   drop_na() %>% 
+  mutate(month = month.abb[month]) %>% 
 ggplot(aes(x = year, y = avg_tmax)) +
-geom_point() + 
-geom_path(alpha = 0.1) +
+geom_point(alpha = 0.2) + 
+geom_path(alpha = 0.2) +
   geom_smooth(se = TRUE) +
 facet_grid(.~ month) + 
-labs(title = " average max temperature in January and July in each station across years", x = "year", y = "average max temperature (C)") +
-theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+labs(title = " average max temperature in January and July", x = "year", y = "average max temperature (C)", caption = "data from NY NOAA") +
+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) 
+
 ```
 
 The average max temperature in July is higher than January. In January, we can see that the average max temperature in each station across the years is oscillating. In July, the average max temperature in each station across the years is more stable than January. Therefore, we cannot conclude that the temperature is warming across years or global warming. There are many outliers in the graph such as the points around January 1982, and July 1988.
